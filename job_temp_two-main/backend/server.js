@@ -1,17 +1,17 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 import { dbConnection } from "./database/dbConnection.js";
 import { errorMiddleware } from "./middlewares/error.js";
-import userRouter from "./routes/userRouter.js";
-import jobRouter from "./routes/jobRouter.js";
+import { ChatMessage } from "./models/chatMessageSchema.js";
+import aiChatRouter from "./routes/aiChatRouter.js";
 import applicationRouter from "./routes/applicationRouter.js";
 import chatRouter from "./routes/chatRouter.js";
-import aiChatRouter from "./routes/aiChatRouter.js";
-import { ChatMessage } from "./models/chatMessageSchema.js";
-import dotenv from "dotenv";
+import jobRouter from "./routes/jobRouter.js";
+import userRouter from "./routes/userRouter.js";
 dotenv.config();
 
 
@@ -36,6 +36,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 dbConnection();
 

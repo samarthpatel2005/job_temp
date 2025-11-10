@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/authContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Building, Camera, Code, Globe, GraduationCap, Mail, Plus, Trash2, User, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Trash2, User, Briefcase, Mail, Phone, GraduationCap, Code, Globe, Plus, X, Download, Building } from 'lucide-react';
+import { useAuth } from '../contexts/authContext';
 
 // --- Reusable Array Input Manager ---
 const ArrayInputManager = ({ label, items, onAdd, onRemove, placeholder, icon }) => {
@@ -10,10 +10,32 @@ const ArrayInputManager = ({ label, items, onAdd, onRemove, placeholder, icon })
     const Icon = icon;
 
     const handleAdd = () => {
-        if (inputValue.trim() === '') return;
+        console.log(`ArrayInputManager handleAdd called for ${label}, inputValue: "${inputValue}"`);
+        if (inputValue.trim() === '') {
+            console.log('InputValue is empty, returning');
+            return;
+        }
+        console.log(`ArrayInputManager: Adding "${inputValue.trim()}" to ${label}`);
         onAdd(inputValue.trim());
         setInputValue('');
     };
+
+    const handleKeyDown = (e) => {
+        console.log(`Key pressed: ${e.key} in ${label}`);
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAdd();
+        }
+    };
+
+    const handleButtonClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`Plus button clicked for ${label}`);
+        handleAdd();
+    };
+
+    console.log(`Rendering ArrayInputManager for ${label}, items:`, items);
 
     return (
         <div>
@@ -27,7 +49,14 @@ const ArrayInputManager = ({ label, items, onAdd, onRemove, placeholder, icon })
                         className="flex items-center bg-blue-100 text-blue-800 text-sm font-medium pl-3 pr-2 py-1 rounded-full"
                     >
                         {item}
-                        <button onClick={() => onRemove(index)} className="ml-2 text-blue-500 hover:text-blue-900">
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                console.log(`Removing item "${item}" at index ${index} from ${label}`);
+                                onRemove(index);
+                            }} 
+                            className="ml-2 text-blue-500 hover:text-blue-900"
+                        >
                             <X size={14} />
                         </button>
                     </motion.div>
@@ -38,12 +67,19 @@ const ArrayInputManager = ({ label, items, onAdd, onRemove, placeholder, icon })
                 <input
                     type="text"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                    onChange={(e) => {
+                        console.log(`Input changed for ${label}: "${e.target.value}"`);
+                        setInputValue(e.target.value);
+                    }}
+                    onKeyDown={handleKeyDown}
                     className="w-full pl-10 pr-12 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                     placeholder={placeholder}
                 />
-                <button type="button" onClick={handleAdd} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600">
+                <button 
+                    type="button" 
+                    onClick={handleButtonClick} 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                >
                     <Plus size={16} />
                 </button>
             </div>
@@ -131,9 +167,11 @@ const ProfilePage = () => {
   });
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !isInitialized) { // Only initialize once
+      console.log("Initializing form data with user:", user);
       setFormData({
         name: user.name || '',
         email: user.email || '',
@@ -145,8 +183,9 @@ const ProfilePage = () => {
         languages: user.languages || [],
       });
       setProfilePicPreview(user.profilePicture?.url || '');
+      setIsInitialized(true);
     }
-  }, [user]);
+  }, [user, isInitialized]);
   
   const handlePicChange = (e) => {
       const file = e.target.files[0];
@@ -170,11 +209,30 @@ const ProfilePage = () => {
     }
   }
 
-  const handleAddItem = useCallback((field, item) => setFormData(prev => ({ ...prev, [field]: [...prev[field], item] })), []);
-  const handleRemoveItem = useCallback((field, index) => setFormData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) })), []);
+  const handleAddItem = useCallback((field, item) => {
+    console.log(`Adding item "${item}" to field "${field}"`);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: [...prev[field], item] };
+      console.log(`Updated ${field}:`, newData[field]);
+      return newData;
+    });
+  }, []);
+  
+  const handleRemoveItem = useCallback((field, index) => {
+    console.log(`Removing item at index ${index} from field "${field}"`);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: prev[field].filter((_, i) => i !== index) };
+      console.log(`Updated ${field}:`, newData[field]);
+      return newData;
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form data being submitted:", formData);
+    console.log("Skills array:", formData.skills);
+    console.log("Education array:", formData.education);
+    console.log("Languages array:", formData.languages);
     await updateProfile(formData);
   };
 

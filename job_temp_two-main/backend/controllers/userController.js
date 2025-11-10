@@ -1,9 +1,9 @@
+import { createClient } from '@supabase/supabase-js';
 import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { User } from "../models/userSchema.js";
 import { sendToken } from "../utils/jwtToken.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { createClient } from '@supabase/supabase-js';
 
 export const register = catchAsyncErrors(async (req, res, next) => {
   const { name, email, phone, password, role } = req.body;
@@ -102,14 +102,41 @@ export const getUser = catchAsyncErrors((req, res, next) => {
 
 export const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
     const { _id } = req.user;
+    
+    // Add debugging
+    console.log("Profile update request received:");
+    console.log("User ID:", _id);
+    console.log("Request body:", req.body);
+    
     // Remove fields that should not be updatable this way
     const { role, password, ...updateData } = req.body;
+    
+    // Ensure arrays are properly handled
+    if (updateData.skills && typeof updateData.skills === 'string') {
+        updateData.skills = updateData.skills.split(',').map(skill => skill.trim()).filter(skill => skill);
+    }
+    if (updateData.education && typeof updateData.education === 'string') {
+        updateData.education = updateData.education.split(',').map(edu => edu.trim()).filter(edu => edu);
+    }
+    if (updateData.languages && typeof updateData.languages === 'string') {
+        updateData.languages = updateData.languages.split(',').map(lang => lang.trim()).filter(lang => lang);
+    }
+    
+    console.log("Update data after processing:", updateData);
 
     const user = await User.findByIdAndUpdate(_id, updateData, {
         new: true,
         runValidators: true,
         useFindAndModify: false,
     });
+    
+    if (!user) {
+        return next(new ErrorHandler("User not found!", 404));
+    }
+    
+    console.log("Updated user skills:", user.skills);
+    console.log("Updated user education:", user.education);
+    console.log("Updated user languages:", user.languages);
 
     res.status(200).json({
         success: true,
@@ -129,7 +156,7 @@ export const updateProfilePicture = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
     const bucketName = 'resume';
-    const folderName = 'profile_pic';
+    const folderName = 'profile';
 
     // If user already has a profile picture, try to delete the old one.
     if (user.profilePicture && user.profilePicture.fileName) {

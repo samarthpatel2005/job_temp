@@ -25,6 +25,20 @@ export const errorMiddleware = (err, req, res, next) => {
     const message = `Json Web Token is expired, Try again!`;
     err = new ErrorHandler(message, 400);
   }
+  
+  // Handle multer errors
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    const message = 'File size should be less than 5MB!';
+    err = new ErrorHandler(message, 400);
+  }
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    const message = 'Unexpected file field!';
+    err = new ErrorHandler(message, 400);
+  }
+  if (err.message === 'Only PDF files are allowed!') {
+    err = new ErrorHandler(err.message, 400);
+  }
+  
   return res.status(err.statusCode).json({
     success: false,
     message: err.message,

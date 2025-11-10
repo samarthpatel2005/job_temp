@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -57,14 +57,17 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (updateData) => {
     try {
+      console.log('Sending profile update request with data:', updateData);
       const { data } = await axios.put(`${API_URL}/profile/update`, updateData, {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' },
       });
+      console.log('Profile update response:', data);
       setUser(data.user);
       toast.success(data.message);
       return { success: true };
     } catch (error) {
+      console.error('Profile update error:', error);
       toast.error(error.response?.data?.message || 'Failed to update profile');
       return { success: false };
     }

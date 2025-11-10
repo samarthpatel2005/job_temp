@@ -1,18 +1,34 @@
 import express from "express";
+import multer from "multer";
 import {
+  checkAts,
   deleteApplication,
-  getMyApplications,
   getJobApplications,
-  postApplication,
+  getMyApplications,
   getSingleApplication,
-  checkAts
+  postApplication
 } from "../controllers/applicationController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
-import multer from "multer";
 
 const router = express.Router();
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+
+// File filter to only accept PDF files
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF files are allowed!'), false);
+  }
+};
+
+const upload = multer({ 
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
+});
 
 router.get("/getmyapplications", isAuthenticated, getMyApplications);
 router.post("/post", isAuthenticated, upload.single("resume"), postApplication);

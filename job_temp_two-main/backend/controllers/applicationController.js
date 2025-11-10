@@ -1,14 +1,16 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from '@supabase/supabase-js';
+import fs from "fs";
+import path from "path";
+import pdf from "pdf-parse";
 import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Application } from "../models/applicationSchema.js";
 import { Job } from "../models/jobSchema.js";
-import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import pdf from "pdf-parse";
 import { getAtsScore } from "../utils/aiHelper.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const postApplication = catchAsyncErrors(async (req, res, next) => {
@@ -18,6 +20,16 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
   }
   if (!req.file) {
     return next(new ErrorHandler("Resume file required!", 400));
+  }
+
+  // Validate file type
+  if (req.file.mimetype !== 'application/pdf') {
+    return next(new ErrorHandler("Only PDF files are allowed!", 400));
+  }
+  
+  // Validate file size (5MB limit)
+  if (req.file.size > 5 * 1024 * 1024) {
+    return next(new ErrorHandler("File size should be less than 5MB!", 400));
   }
 
   const { name, email, coverLetter, phone, address, jobId } = req.body;
@@ -43,25 +55,86 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
   
   const employerID = { user: jobDetails.postedBy, role: "Employer" };
 
-  // Upload to Supabase
+  // Upload to Supabase with local fallback
   const resumeFileName = `${req.user.name.split(' ').join('_')}_${Date.now()}.pdf`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('resume')
-    .upload(resumeFileName, req.file.buffer, {
-      contentType: req.file.mimetype,
-    });
-    
-  if (uploadError) {
-    return next(new ErrorHandler("Failed to upload resume to Supabase.", 500));
-  }
+  const resumePath = `resume1/${resumeFileName}`;
+  let resumeUrl = "";
   
-  const { data: urlData } = supabase.storage.from('resume').getPublicUrl(resumeFileName);
-  const resumeUrl = urlData.publicUrl;
+  // Try Supabase upload first, then fallback to local storage
+  try {
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('resume')
+      .upload(resumePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+      });
+      
+    if (uploadError) {
+      throw new Error("Supabase upload failed");
+    }
+    
+    const { data: urlData } = supabase.storage.from('resume').getPublicUrl(resumePath);
+    resumeUrl = urlData.publicUrl;
+    console.log("Successfully uploaded to Supabase:", resumeUrl);
+  } catch (supabaseError) {
+    console.error("Supabase error:", supabaseError);
+    console.log("Falling back to local file storage...");
+    
+    // Fallback: store file locally
+    try {
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'resumes');
+      const localFilePath = path.join(uploadsDir, resumeFileName);
+      
+      // Ensure directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      // Save file locally
+      fs.writeFileSync(localFilePath, req.file.buffer);
+      
+      // Create local URL
+      resumeUrl = `http://localhost:${process.env.PORT || 4000}/uploads/resumes/${resumeFileName}`;
+      console.log("Successfully saved locally:", resumeUrl);
+    } catch (localError) {
+      console.error("Local storage error:", localError);
+      resumeUrl = `local://resumes/${resumeFileName}`;
+    }
+  }
 
-  // Parse resume and get ATS score
-  const resumeText = (await pdf(req.file.buffer)).text;
-  const atsScore = await getAtsScore(resumeText, jobDetails.skills);
+  // Parse resume and get ATS score with proper error handling
+  let resumeText = "";
+  let atsScore = 0;
+  
+  try {
+    // Validate PDF structure before parsing
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      throw new Error("Invalid or empty PDF file");
+    }
+    
+    // Check if file starts with PDF header
+    const pdfHeader = req.file.buffer.slice(0, 4).toString();
+    if (pdfHeader !== '%PDF') {
+      throw new Error("Invalid PDF file format");
+    }
+    
+    const pdfData = await pdf(req.file.buffer);
+    resumeText = pdfData.text;
+    
+    // Check if PDF contains readable text
+    if (!resumeText || resumeText.trim().length === 0) {
+      console.warn("PDF contains no readable text, setting default ATS score");
+      resumeText = "No readable text found in PDF";
+      atsScore = 1;
+    } else {
+      atsScore = await getAtsScore(resumeText, jobDetails.skills);
+    }
+  } catch (pdfError) {
+    console.error("PDF parsing error:", pdfError);
+    resumeText = "PDF parsing failed";
+    atsScore = 1;
+  }
 
+  // Create application in database
   const application = await Application.create({
     name,
     email,
@@ -73,11 +146,12 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
     jobID: jobId,
     resume: {
         url: resumeUrl,
-        fileName: resumeFileName,
+        fileName: resumePath,
     },
     atsScore,
   });
 
+  // Send confirmation email
   const emailMessage = `
     <html>
       <head>
@@ -112,8 +186,9 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
         subject: `Confirmation of Your Application for ${jobDetails.title}`,
         message: emailMessage,
     });
-  } catch(error){
-      return next(new ErrorHandler(error.message, 500));
+  } catch(emailError){
+      console.error("Email sending error:", emailError);
+      // Don't fail the application submission due to email error
   }
 
   res.status(200).json({
@@ -200,6 +275,17 @@ export const checkAts = catchAsyncErrors(async (req, res, next) => {
     if (!req.file) {
         return next(new ErrorHandler("Resume file required!", 400));
     }
+    
+    // Validate file type
+    if (req.file.mimetype !== 'application/pdf') {
+        return next(new ErrorHandler("Only PDF files are allowed!", 400));
+    }
+    
+    // Validate file size (5MB limit)
+    if (req.file.size > 5 * 1024 * 1024) {
+        return next(new ErrorHandler("File size should be less than 5MB!", 400));
+    }
+    
     const { jobId } = req.body;
     if (!jobId) {
         return next(new ErrorHandler("Job ID is required.", 400));
@@ -210,12 +296,40 @@ export const checkAts = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Job not found!", 404));
     }
 
-    const resumeText = (await pdf(req.file.buffer)).text;
-    const atsScore = await getAtsScore(resumeText, jobDetails.skills);
+    try {
+        // Validate PDF structure before parsing
+        if (!req.file.buffer || req.file.buffer.length === 0) {
+            return next(new ErrorHandler("Invalid or empty PDF file!", 400));
+        }
+        
+        // Check if file starts with PDF header
+        const pdfHeader = req.file.buffer.slice(0, 4).toString();
+        if (pdfHeader !== '%PDF') {
+            return next(new ErrorHandler("Invalid PDF file format!", 400));
+        }
+        
+        const pdfData = await pdf(req.file.buffer);
+        const resumeText = pdfData.text;
+        
+        // Check if PDF contains readable text
+        if (!resumeText || resumeText.trim().length === 0) {
+            return next(new ErrorHandler("PDF file appears to be empty or contains no readable text!", 400));
+        }
+        
+        const atsScore = await getAtsScore(resumeText, jobDetails.skills);
 
-    res.status(200).json({
-        success: true,
-        message: "ATS Score Calculated Successfully!",
-        atsScore,
-    });
+        res.status(200).json({
+            success: true,
+            message: "ATS Score Calculated Successfully!",
+            atsScore,
+        });
+    } catch (error) {
+        console.error("PDF parsing error:", error);
+        if (error.message.includes('Invalid PDF structure') || 
+            error.message.includes('PDF parsing') ||
+            error.message.includes('Invalid PDF')) {
+            return next(new ErrorHandler("Invalid PDF file. Please ensure the file is a valid PDF document.", 400));
+        }
+        return next(new ErrorHandler("Error processing PDF file. Please try again with a different file.", 500));
+    }
 }); 

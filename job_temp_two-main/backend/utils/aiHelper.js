@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import ErrorHandler from "../middlewares/error.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -50,14 +49,25 @@ Missing Skills: [List of missing skills]
 `;
 
     try {
+        // Check if API key is available
+        if (!process.env.GEMINI_API_KEY) {
+            console.error('GEMINI_API_KEY is not set in environment variables');
+            throw new Error('Gemini API key not configured');
+        }
+
+        console.log('Using Gemini API key:', process.env.GEMINI_API_KEY.substring(0, 10) + '...');
+        
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
+        
+        console.log('Gemini API response received');
         const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
         if (!text) {
-            throw new ErrorHandler('Empty response from AI.', 500);
+            console.error('Empty response from Gemini AI');
+            throw new Error('Empty response from AI.');
         }
 
         const scoreMatch = text.match(/Score:\s*(\d+)/);

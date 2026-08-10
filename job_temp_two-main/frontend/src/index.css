@@ -1,1 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		@apply bg-slate-950 text-slate-100 antialiased;
+		font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+		background:
+			radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 30%),
+			radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 24%),
+			linear-gradient(180deg, #020617 0%, #07111f 45%, #0b1220 100%);
+	}
+
+	body::before {
+		content: '';
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		background-image: linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+		background-size: 72px 72px;
+		mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 90%);
+		opacity: 0.5;
+	}
+
+	#root {
+		min-height: 100vh;
+	}
+
+	::selection {
+		background: rgba(56, 189, 248, 0.35);
+		color: white;
+	}
+}
+
+@layer utilities {
+	.page-width {
+		width: 100%;
+		max-width: 88rem;
+		margin-inline: auto;
+	}
+
+	.surface {
+		@apply rounded-3xl border border-white/10 bg-slate-900/70 shadow-[0_30px_90px_rgba(2,6,23,0.45)] backdrop-blur-xl;
+	}
+
+	.surface-soft {
+		@apply rounded-3xl border border-white/10 bg-white/5 shadow-[0_18px_60px_rgba(2,6,23,0.28)] backdrop-blur-xl;
+	}
+
+	.surface-strong {
+		@apply rounded-[2rem] border border-white/12 bg-slate-900/75 shadow-[0_30px_90px_rgba(2,6,23,0.5)] backdrop-blur-2xl;
+	}
+
+	.panel-grid {
+		@apply grid gap-6 md:gap-8;
+	}
+
+	.section-title {
+		@apply text-3xl font-bold tracking-tight text-white sm:text-4xl;
+	}
+
+	.section-subtitle {
+		@apply mt-3 text-base leading-7 text-slate-300;
+	}
+
+	.hero-badge {
+		@apply inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200;
+	}
+
+	.field {
+		@apply w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-400 outline-none transition focus:border-cyan-400/50 focus:bg-white/8 focus:ring-2 focus:ring-cyan-400/20;
+	}
+
+	.primary-button {
+		@apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 px-5 py-3 font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-cyan-300/40;
+	}
+
+	.secondary-button {
+		@apply inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-5 py-3 font-semibold text-white transition hover:bg-white/10;
+	}
+
+	.chip {
+		@apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold tracking-wide text-slate-200;
+	}
+}

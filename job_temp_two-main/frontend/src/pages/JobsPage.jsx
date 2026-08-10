@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Briefcase, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-// Assuming useJobs context is defined and accessible at this path
-// This import path assumes a 'contexts' folder exists one level up from the component.
-// If your context file is structured differently, please adjust this path.
 import { useJobs } from '../contexts/jobContext';
 
 const JobsPage = () => {
@@ -56,138 +55,108 @@ const JobsPage = () => {
   // Display a loading message while job data is being fetched
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-xl text-gray-700 animate-pulse">Loading job listings...</div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="surface-soft px-8 py-6 text-center text-slate-200">Loading job listings...</div>
       </div>
     );
   }
 
   return (
-    // Main container for the job page, with responsive padding and background
-    <div className="min-h-screen bg-gray-50 font-sans py-10 sm:py-12 md:py-16">
-      {/* Centered content area with a maximum width for desktop */}
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="space-y-8">
+      <motion.section initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="surface-strong relative overflow-hidden px-6 py-10 sm:px-8 lg:px-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.15),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(99,102,241,0.12),_transparent_28%)]" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <span className="hero-badge"><Sparkles className="h-4 w-4" /> Search the marketplace</span>
+            <h1 className="text-5xl font-black tracking-tight text-white sm:text-6xl">Discover your next opportunity.</h1>
+            <p className="max-w-2xl text-lg leading-8 text-slate-300">Search by role, location, and work style with a focused view of every opening.</p>
+          </div>
+          <div className="surface-soft flex items-center gap-3 px-4 py-3 text-slate-200">
+            <SlidersHorizontal className="h-5 w-5 text-cyan-300" />
+            <span className="text-sm font-medium">Refined filter experience</span>
+          </div>
+        </div>
+      </motion.section>
 
-        {/* Page Title */}
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-8 sm:mb-12 text-center leading-tight">
-          Discover Your Next Opportunity
-        </h1>
-
-        {/* Filter Section */}
-        <div className="mb-12 p-6 bg-white rounded-2xl shadow-xl border border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {/* Input for searching by job title */}
+      <section className="surface-soft p-5 sm:p-6">
+        <div className="grid gap-4 md:grid-cols-4">
+          <div className="relative md:col-span-2">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               name="title"
               placeholder="Search by title..."
               value={filters.title}
               onChange={handleFilterChange}
-              className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-gray-500"
+              className="field pl-11"
               aria-label="Search by job title"
             />
-            {/* Input for filtering by country */}
-            <input
-              type="text"
-              name="country"
-              placeholder="Filter by country..."
-              value={filters.country}
-              onChange={handleFilterChange}
-              className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-gray-500"
-              aria-label="Filter by country"
-            />
-            {/* Input for filtering by city */}
-            <input
-              type="text"
-              name="city"
-              placeholder="Filter by city..."
-              value={filters.city}
-              onChange={handleFilterChange}
-              className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-gray-500"
-              aria-label="Filter by city"
-            />
-            <select
-              name="jobType"
-              value={filters.jobType}
-              onChange={handleFilterChange}
-              className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-              aria-label="Filter by job type"
-            >
-              <option value="All">All Types</option>
-              <option value="Full Time">Full-time</option>
-              <option value="Part Time">Part-time</option>
-              <option value="Remote">Remote</option>
-              <option value="Internship">Internship</option>
-            </select>
           </div>
+          <input
+            type="text"
+            name="country"
+            placeholder="Filter by country..."
+            value={filters.country}
+            onChange={handleFilterChange}
+            className="field"
+            aria-label="Filter by country"
+          />
+          <input
+            type="text"
+            name="city"
+            placeholder="Filter by city..."
+            value={filters.city}
+            onChange={handleFilterChange}
+            className="field"
+            aria-label="Filter by city"
+          />
+          <select
+            name="jobType"
+            value={filters.jobType}
+            onChange={handleFilterChange}
+            className="field md:col-span-2"
+            aria-label="Filter by job type"
+          >
+            <option value="All">All Types</option>
+            <option value="Full Time">Full-time</option>
+            <option value="Part Time">Part-time</option>
+            <option value="Remote">Remote</option>
+            <option value="Internship">Internship</option>
+          </select>
         </div>
+      </section>
 
-        {/* Job Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
-          {filteredJobs && filteredJobs.length > 0 ? (
-            // Map through filtered jobs and render a job card for each
-            filteredJobs.map((job) => (
-              <div
-                key={job._id}
-                className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200
-                           hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out
-                           flex flex-col justify-between" // Ensures cards have consistent height
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    {/* Job Title */}
-                    <h2 className="text-2xl font-extrabold text-gray-900 leading-tight pr-4">
-                      {job.title}
-                    </h2>
-                    {/* Job Type Tag with dynamic styling */}
-                    <span
-                      className={`text-sm font-bold px-4 py-1.5 rounded-full whitespace-nowrap 
-                                  ${job.jobType === 'Full Time' ? 'bg-indigo-100 text-indigo-800' : 'bg-emerald-100 text-emerald-800'}`}
-                    >
-                      {job.jobType}
-                    </span>
-                  </div>
-                  {/* Company Name */}
-                  <p className="text-lg text-gray-700 font-semibold mb-1">
-                    {job.companyName}
-                  </p>
-                  {/* Location */}
-                  <p className="text-md text-gray-500 flex items-center">
-                    {/* Consider adding a location icon here using Lucide React or similar if desired */}
-                    {job.city}, {job.country}
-                  </p>
-                  {/* Job Description (clamped to 4 lines for consistent card height) */}
-                  <p className="text-gray-700 my-4 leading-relaxed line-clamp-4">
-                    {job.description}
-                  </p>
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {filteredJobs && filteredJobs.length > 0 ? (
+          filteredJobs.map((job) => (
+            <motion.div key={job._id} whileHover={{ y: -6 }} className="surface-soft flex h-full flex-col p-6 transition hover:border-cyan-300/20 hover:bg-white/8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/15 to-indigo-500/15 text-cyan-200 ring-1 ring-white/10">
+                  <Briefcase className="h-6 w-6" />
                 </div>
-                {/* Salary and View Details Button */}
-                <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-4">
-                  {/* Salary Display */}
-                  <span className="text-2xl font-extrabold text-indigo-700">
-                    {job.fixedSalary
-                      ? `$${job.fixedSalary.toLocaleString()}`
-                      : `$${job.salaryFrom.toLocaleString()} - $${job.salaryTo.toLocaleString()}`}
-                  </span>
-                  {/* View Details Button */}
-                  <Link
-                    to={`/job/${job._id}`}
-                    className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold
-                               hover:bg-indigo-700 transition-colors duration-300
-                               shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    View Details
-                  </Link>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="text-xl font-bold text-white">{job.title}</h2>
+                    <span className="chip shrink-0">{job.jobType}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-300">{job.companyName}</p>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-slate-400"><MapPin className="h-4 w-4" /> {job.city}, {job.country}</p>
                 </div>
               </div>
-            ))
-          ) : (
-            // Message displayed when no jobs match the filters
-            <p className="col-span-full text-center text-gray-600 text-xl py-10 rounded-lg bg-white shadow-sm border border-gray-100">
-              No jobs match your criteria. Please adjust your filters.
-            </p>
-          )}
-        </div>
+              <p className="mt-5 line-clamp-3 flex-1 leading-7 text-slate-300">{job.description}</p>
+              <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5">
+                <span className="text-lg font-bold text-white">
+                  {job.fixedSalary ? `$${Number(job.fixedSalary).toLocaleString()}` : `$${Number(job.salaryFrom).toLocaleString()} - $${Number(job.salaryTo).toLocaleString()}`}
+                </span>
+                <Link to={`/job/${job._id}`} className="secondary-button gap-2 px-4 py-2 text-sm">
+                  View details <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <p className="surface-soft col-span-full px-6 py-14 text-center text-slate-300">No jobs match your criteria. Please adjust your filters.</p>
+        )}
       </div>
     </div>
   );

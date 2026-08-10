@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
 import axios from 'axios';
-import { FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { Bot, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { FaPaperPlane } from 'react-icons/fa';
 
 const AIChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,42 +29,63 @@ const AIChatBot = () => {
     }
   };
 
-  return (
-    <>
-      <div className={`fixed bottom-24 right-5 w-80 h-[28rem] bg-white rounded-xl shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'transform scale-100' : 'transform scale-0'}`}>
-        <div className="flex justify-between items-center p-3 bg-blue-600 text-white rounded-t-xl">
-          <h3 className="font-bold text-lg">Gemini AI Assistant</h3>
-          <button onClick={() => setIsOpen(false)} className="hover:bg-blue-700 p-1 rounded-full"><FaTimes /></button>
+  const chatWindow = isOpen ? createPortal(
+    <div className="fixed inset-0 z-[200] flex items-end justify-end bg-slate-950/55 p-4 sm:p-6" onClick={() => setIsOpen(false)}>
+      <div
+        className="surface-strong relative flex h-[min(78vh,46rem)] w-[min(92vw,38rem)] flex-col overflow-hidden"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-cyan-400/15 to-indigo-500/15 px-4 py-4 text-white sm:px-5">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-cyan-200"><Sparkles className="h-3 w-3" /> AI assistant</div>
+            <h3 className="mt-1 text-lg font-bold sm:text-xl">Gemini AI Helper</h3>
+          </div>
+          <button onClick={() => setIsOpen(false)} className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:bg-white/10"><X className="h-4 w-4" /></button>
         </div>
-        <div className="h-80 p-4 overflow-y-auto">
+
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-5">
+          {messages.length === 0 ? (
+            <div className="surface-soft p-5 text-slate-300">
+              Ask for resume tips, job suggestions, or help with applications. The assistant will respond in this panel.
+            </div>
+          ) : null}
           {messages.map((msg, index) => (
-            <div key={index} className={`my-2 p-3 rounded-lg max-w-xs ${msg.from === 'user' ? 'bg-blue-100 ml-auto' : 'bg-gray-200'}`}>
-              <p className="text-sm">{msg.text}</p>
+            <div key={index} className={`max-w-[85%] rounded-3xl px-4 py-3 ${msg.from === 'user' ? 'ml-auto bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950' : 'border border-white/10 bg-white/5 text-slate-100'}`}>
+              <p className="text-sm leading-6">{msg.text}</p>
             </div>
           ))}
-          {isLoading && <div className="my-2 p-3 rounded-lg max-w-xs bg-gray-200"><p className="text-sm">Thinking...</p></div>}
+          {isLoading && <div className="max-w-[85%] rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100"><p className="text-sm">Thinking...</p></div>}
         </div>
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t">
-          <div className="flex items-center">
+
+        <div className="border-t border-white/10 bg-slate-950/95 p-4 sm:p-5">
+          <div className="flex items-center gap-3">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask anything..."
-              className="flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="field flex-1"
             />
-            <button onClick={handleSend} className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 disabled:bg-blue-300" disabled={isLoading}>
+            <button onClick={handleSend} className="primary-button h-12 w-12 shrink-0 p-0" disabled={isLoading} aria-label="Send message">
               <FaPaperPlane />
             </button>
           </div>
         </div>
       </div>
-      <button 
-        onClick={() => setIsOpen(true)} 
-        className={`fixed bottom-5 right-5 w-16 h-16 bg-blue-600 rounded-full text-white flex items-center justify-center shadow-lg hover:bg-blue-700 transition-all duration-300 ${isOpen ? 'transform scale-0' : 'transform scale-100'}`}
+    </div>,
+    document.body,
+  ) : null;
+
+  return (
+    <>
+      {chatWindow}
+      <button
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-5 right-5 z-[150] flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 text-slate-950 shadow-lg shadow-cyan-500/20 transition-all duration-300 ${isOpen ? 'scale-0' : 'scale-100'}`}
+        aria-label="Open AI assistant"
       >
-        <img src="https://static.vecteezy.com/system/resources/previews/056/850/690/non_2x/gemini-ai-app-icon-with-transparent-background-free-png.png" alt="Chat" className="w-10 h-10" />
+        <Bot className="h-8 w-8" />
       </button>
     </>
   );

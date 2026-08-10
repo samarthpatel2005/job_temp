@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Briefcase, Building, FileText, Home, LogIn, LogOut, Menu, PlusSquare, User, UserPlus, X } from 'lucide-react';
+import { useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/authContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Briefcase, FileText, User, LogIn, UserPlus, LogOut, X, Menu, Building, PlusSquare } from 'lucide-react';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, loading } = useAuth();
@@ -12,13 +12,13 @@ const Navbar = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleProfileMenu = () => setProfileOpen(!profileOpen);
 
-  const baseLinkClasses = "flex items-center px-3 py-2 rounded-md text-sm font-medium";
-  const activeLinkClasses = "bg-gray-900 text-white";
-  const inactiveLinkClasses = "text-gray-300 hover:bg-gray-700 hover:text-white";
+  const baseLinkClasses = 'flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200';
+  const activeLinkClasses = 'bg-white/10 text-white ring-1 ring-white/15';
+  const inactiveLinkClasses = 'text-slate-300 hover:bg-white/8 hover:text-white';
 
-  const mobileLinkClasses = "block px-3 py-2 rounded-md text-base font-medium";
-  const activeMobileLinkClasses = "bg-gray-900 text-white";
-  const inactiveMobileLinkClasses = "text-gray-300 hover:bg-gray-700 hover:text-white";
+  const mobileLinkClasses = 'flex items-center gap-2 rounded-2xl px-4 py-3 text-base font-medium transition-all duration-200';
+  const activeMobileLinkClasses = 'bg-white/10 text-white ring-1 ring-white/15';
+  const inactiveMobileLinkClasses = 'text-slate-300 hover:bg-white/8 hover:text-white';
 
   const menuVariants = {
     closed: { opacity: 0, scale: 0.95, y: -10 },
@@ -26,59 +26,63 @@ const Navbar = () => {
   };
 
   const commonLinks = (mobile = false) => (
-    <>
-        <NavLink to="/jobs" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-            <Briefcase className="mr-2 h-5 w-5" /> Find Jobs
-        </NavLink>
-    </>
+    <NavLink to="/jobs" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
+      <Briefcase className="h-5 w-5" /> Find Jobs
+    </NavLink>
   );
 
   const jobSeekerLinks = (mobile = false) => (
     <>
       <NavLink to="/" end className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-        <Home className="mr-2 h-5 w-5" /> Dashboard
+        <Home className="h-5 w-5" /> Dashboard
       </NavLink>
       <NavLink to="/my-applications" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-        <FileText className="mr-2 h-5 w-5" /> My Applications
+        <FileText className="h-5 w-5" /> My Applications
       </NavLink>
     </>
   );
   
   const employerLinks = (mobile = false) => (
-      <>
-        <NavLink to="/" end className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-          <Home className="mr-2 h-5 w-5" /> Dashboard
-        </NavLink>
-        <NavLink to="/post-job" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-          <PlusSquare className="mr-2 h-5 w-5" /> Post Job
-        </NavLink>
-        <NavLink to="/my-jobs" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-          <Building className="mr-2 h-5 w-5" /> My Jobs
-        </NavLink>
-      </>
+    <>
+      <NavLink to="/" end className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
+        <Home className="h-5 w-5" /> Dashboard
+      </NavLink>
+      <NavLink to="/post-job" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
+        <PlusSquare className="h-5 w-5" /> Post Job
+      </NavLink>
+      <NavLink to="/my-jobs" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
+        <Building className="h-5 w-5" /> My Jobs
+      </NavLink>
+    </>
   );
 
   const guestLinks = (mobile = false) => (
     <>
       <NavLink to="/login" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-        <LogIn className="mr-2 h-5 w-5" /> Login
+        <LogIn className="h-5 w-5" /> Login
       </NavLink>
       <NavLink to="/register" className={({ isActive }) => `${mobile ? mobileLinkClasses : baseLinkClasses} ${isActive ? (mobile ? activeMobileLinkClasses : activeLinkClasses) : (mobile ? inactiveMobileLinkClasses : inactiveLinkClasses)}`}>
-        <UserPlus className="mr-2 h-5 w-5" /> Register
+        <UserPlus className="h-5 w-5" /> Register
       </NavLink>
     </>
   );
 
   return (
-    <nav className="bg-gray-800 shadow-lg">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="text-white font-bold text-xl flex items-center">
-              <Briefcase className="mr-2" /> JobConnect
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
+      <div className="page-width px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-3 text-white">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-indigo-500 text-slate-950 shadow-lg shadow-cyan-500/20">
+                <Briefcase className="h-5 w-5" />
+              </span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-lg font-bold tracking-tight">JobConnect</span>
+                <span className="text-xs uppercase tracking-[0.24em] text-slate-400">AI hiring suite</span>
+              </span>
             </Link>
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
+              <div className="ml-8 flex items-center gap-2">
                 {loading ? null : (isAuthenticated && user) ? (user.role === 'Job Seeker' ? jobSeekerLinks() : employerLinks()) : null}
                 {commonLinks()}
               </div>
@@ -87,13 +91,15 @@ const Navbar = () => {
           <div className="hidden md:block">
             {(isAuthenticated && user) ? (
               <div className="ml-4 flex items-center md:ml-6">
-                <div className="ml-3 relative">
-                  <div>
-                    <button onClick={toggleProfileMenu} className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
-                      <span className="sr-only">Open user menu</span>
-                      <img className="h-9 w-9 rounded-full object-cover" src={user?.profilePicture?.url || 'https://via.placeholder.com/40'} alt="profile" />
-                    </button>
-                  </div>
+                <div className="relative ml-3">
+                  <button onClick={toggleProfileMenu} className="flex max-w-xs items-center gap-3 rounded-full border border-white/10 bg-white/5 px-2 py-2 text-sm text-white shadow-lg shadow-slate-950/20 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/30">
+                    <span className="sr-only">Open user menu</span>
+                    <img className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10" src={user?.profilePicture?.url || 'https://via.placeholder.com/40'} alt="profile" />
+                    <span className="hidden text-left lg:block">
+                      <span className="block text-sm font-semibold text-white">{user.name}</span>
+                      <span className="block text-xs text-slate-400">{user.role}</span>
+                    </span>
+                  </button>
                   <AnimatePresence>
                     {profileOpen && (
                       <motion.div
@@ -101,13 +107,13 @@ const Navbar = () => {
                         initial="closed"
                         animate="open"
                         exit="closed"
-                        className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                        className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl border border-white/10 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/50 backdrop-blur-xl"
                       >
-                        <NavLink to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
-                          <User className="mr-2 h-4 w-4" /> Your Profile
+                        <NavLink to="/profile" className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm text-slate-200 transition hover:bg-white/10">
+                          <User className="h-4 w-4" /> Your Profile
                         </NavLink>
-                        <button onClick={() => { logout(); setProfileOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
-                          <LogOut className="mr-2 h-4 w-4" /> Sign out
+                        <button onClick={() => { logout(); setProfileOpen(false); }} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm text-slate-200 transition hover:bg-white/10">
+                          <LogOut className="h-4 w-4" /> Sign out
                         </button>
                       </motion.div>
                     )}
@@ -115,11 +121,11 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">{loading ? null : guestLinks()}</div>
+              <div className="flex items-center gap-2">{loading ? null : guestLinks()}</div>
             )}
           </div>
           <div className="-mr-2 flex md:hidden">
-            <button onClick={toggleMenu} className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+            <button onClick={toggleMenu} className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-200 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/30">
               <span className="sr-only">Open main menu</span>
               {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
             </button>
@@ -134,29 +140,29 @@ const Navbar = () => {
             initial="closed"
             animate="open"
             exit="closed"
-            className="md:hidden"
+            className="border-t border-white/10 bg-slate-950/95 backdrop-blur-2xl md:hidden"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <div className="page-width px-4 pb-5 pt-4 sm:px-6">
               {loading ? null : (isAuthenticated && user) ? (user.role === 'Job Seeker' ? jobSeekerLinks(true) : employerLinks(true)) : guestLinks(true)}
               {(isAuthenticated && user) && (
-                <div className="pt-4 pb-3 border-t border-gray-700">
-                    <div className="flex items-center px-5">
-                        <div className="flex-shrink-0">
-                            <img className="h-10 w-10 rounded-full object-cover" src={user?.profilePicture?.url || 'https://via.placeholder.com/40'} alt="profile" />
-                        </div>
-                        <div className="ml-3">
-                            <div className="text-base font-medium leading-none text-white">{user.name}</div>
-                            <div className="text-sm font-medium leading-none text-gray-400">{user.email}</div>
-                        </div>
+                <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center px-1">
+                    <div className="flex-shrink-0">
+                      <img className="h-11 w-11 rounded-full object-cover ring-1 ring-white/10" src={user?.profilePicture?.url || 'https://via.placeholder.com/40'} alt="profile" />
                     </div>
-                    <div className="mt-3 px-2 space-y-1">
-                        <NavLink to="/profile" className={mobileLinkClasses + " " + inactiveMobileLinkClasses}>
-                            <User className="mr-2 h-5 w-5" /> Your Profile
-                        </NavLink>
-                        <button onClick={() => { logout(); setIsOpen(false); }} className={`${mobileLinkClasses} ${inactiveMobileLinkClasses} w-full text-left`}>
-                            <LogOut className="mr-2 h-5 w-5" /> Sign out
-                        </button>
+                    <div className="ml-3">
+                      <div className="text-base font-semibold leading-none text-white">{user.name}</div>
+                      <div className="text-sm font-medium leading-none text-slate-400">{user.email}</div>
                     </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <NavLink to="/profile" className={mobileLinkClasses + ' ' + inactiveMobileLinkClasses}>
+                      <User className="h-5 w-5" /> Your Profile
+                    </NavLink>
+                    <button onClick={() => { logout(); setIsOpen(false); }} className={`${mobileLinkClasses} ${inactiveMobileLinkClasses} w-full text-left`}>
+                      <LogOut className="h-5 w-5" /> Sign out
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -167,4 +173,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

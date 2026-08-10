@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import fs from "fs";
+import path from "path";
 import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { User } from "../models/userSchema.js";
@@ -146,57 +147,41 @@ export const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const updateProfilePicture = catchAsyncErrors(async (req, res, next) => {
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-        return next(new ErrorHandler("Supabase is not configured. Missing URL or Key.", 500));
-    }
     if (!req.file) {
         return next(new ErrorHandler("Profile picture file required!", 400));
     }
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
     const user = await User.findById(req.user._id);
 
-    const bucketName = 'resume';
-    const folderName = 'profile';
+  if (!user) {
+    return next(new ErrorHandler("User not found!", 404));
+  }
 
-    // If user already has a profile picture, try to delete the old one.
-    if (user.profilePicture && user.profilePicture.fileName) {
-        try {
-            const { error: deleteError } = await supabase.storage.from(bucketName).remove([user.profilePicture.fileName]);
-            if (deleteError) {
-                // Log the deletion error but don't block the upload
-                console.error("Supabase delete error:", deleteError.message);
-            }
-        } catch (error) {
-            console.error("An unexpected error occurred during file deletion:", error.message);
-        }
+  const uploadsDir = path.join(process.cwd(), "uploads", "profiles");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const extension = path.extname(req.file.originalname) || ".png";
+  const newFileName = `${user._id}_${Date.now()}${extension}`;
+  const filePath = path.join(uploadsDir, newFileName);
+
+  if (user.profilePicture?.fileName) {
+    const previousFileName = user.profilePicture.fileName.replace(/\\/g, "/");
+    if (previousFileName.startsWith("uploads/")) {
+      const previousFilePath = path.join(process.cwd(), previousFileName);
+      if (fs.existsSync(previousFilePath)) {
+        fs.unlinkSync(previousFilePath);
+      }
     }
+  }
 
-    const newFileName = `${user._id}_${Date.now()}.png`; // Using user ID for uniqueness
-    const filePath = `${folderName}/${newFileName}`;
-    
-    const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, req.file.buffer, {
-            contentType: req.file.mimetype,
-            upsert: true // Using upsert can simplify logic and prevent errors if file exists
-        });
+  fs.writeFileSync(filePath, req.file.buffer);
 
-    if (uploadError) {
-        console.error("Supabase upload error:", uploadError);
-        return next(new ErrorHandler(`Supabase upload failed: ${uploadError.message}`, 500));
-    }
-
-    const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-    
-    if (!urlData || !urlData.publicUrl) {
-        return next(new ErrorHandler("Could not get public URL for the uploaded file.", 500));
-    }
-    
-    const profilePictureUrl = urlData.publicUrl;
+  const profilePictureUrl = `${req.protocol}://${req.get("host")}/uploads/profiles/${newFileName}`;
 
     user.profilePicture = {
         url: profilePictureUrl,
-        fileName: filePath, // Store the full path including the folder
+    fileName: path.relative(process.cwd(), filePath).replace(/\\/g, "/"),
     };
 
     await user.save();
@@ -209,24 +194,20 @@ export const updateProfilePicture = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const removeProfilePicture = catchAsyncErrors(async (req, res, next) => {
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-        return next(new ErrorHandler("Supabase is not configured. Missing URL or Key.", 500));
-    }
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
     const user = await User.findById(req.user._id);
 
-    const bucketName = 'resume';
+  if (!user) {
+    return next(new ErrorHandler("User not found!", 404));
+  }
 
-    // If user has a profile picture (and it's not the default one), delete it from Supabase
-    if (user.profilePicture && user.profilePicture.fileName) {
-        const { error: deleteError } = await supabase.storage.from(bucketName).remove([user.profilePicture.fileName]);
-        if (deleteError) {
-            console.error("Supabase delete error on removal:", deleteError.message);
-            // Don't fail if file not found, just proceed to reset the DB record.
-            if (!deleteError.message.toLowerCase().includes('not found')) {
-               return next(new ErrorHandler(`Could not remove old picture: ${deleteError.message}`, 500));
-            }
-        }
+  if (user.profilePicture && user.profilePicture.fileName) {
+    const previousFileName = user.profilePicture.fileName.replace(/\\/g, "/");
+    if (previousFileName.startsWith("uploads/")) {
+      const previousFilePath = path.join(process.cwd(), previousFileName);
+      if (fs.existsSync(previousFilePath)) {
+        fs.unlinkSync(previousFilePath);
+      }
+    }
     }
 
     // Reset to default

@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await axios.put(`${API_URL}/profile/picture/update`, formData, {
         withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
       });
       setUser(data.user);
       toast.success(data.message);

@@ -1,1 +1,51 @@
+@layer components {
+	.app-shell {
+		position: relative;
+		min-height: 100vh;
+		isolation: isolate;
+	}
+
+	.app-shell::before,
+	.app-shell::after {
+		content: '';
+		position: fixed;
+		inset: auto;
+		pointer-events: none;
+		z-index: 0;
+		border-radius: 9999px;
+		filter: blur(40px);
+		opacity: 0.55;
+	}
+
+	.app-shell::before {
+		top: -120px;
+		right: -80px;
+		width: 360px;
+		height: 360px;
+		background: radial-gradient(circle, rgba(34, 211, 238, 0.22), transparent 68%);
+	}
+
+	.app-shell::after {
+		bottom: 10%;
+		left: -100px;
+		width: 420px;
+		height: 420px;
+		background: radial-gradient(circle, rgba(99, 102, 241, 0.18), transparent 70%);
+	}
+
+	.hero-glow {
+		position: relative;
+	}
+
+	.hero-glow::after {
+		content: '';
+		position: absolute;
+		inset: 10% 8% auto;
+		height: 70%;
+		border-radius: 2rem;
+		background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 55%);
+		z-index: -1;
+		filter: blur(18px);
+	}
+}
 

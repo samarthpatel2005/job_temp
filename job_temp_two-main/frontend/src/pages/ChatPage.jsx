@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { MessageSquare, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/authContext';
@@ -70,28 +71,33 @@ const ChatPage = () => {
   }, [messages]);
 
   return (
-    <div className="container mx-auto px-4 py-8 flex flex-col h-[80vh]">
-      <h1 className="text-3xl font-bold mb-4">Chat</h1>
-      <div className="flex-grow bg-white p-4 rounded-lg shadow-md overflow-y-auto">
+    <div className="mx-auto flex h-[80vh] max-w-5xl flex-col gap-4">
+      <div className="surface-strong flex items-center justify-between px-6 py-5">
+        <div>
+          <p className="hero-badge"><MessageSquare className="h-4 w-4" /> Chat</p>
+          <h1 className="mt-3 text-3xl font-black text-white">Conversation</h1>
+        </div>
+      </div>
+      <div className="surface-soft flex-grow overflow-y-auto p-4">
         {messages.map((msg, index) => (
           <div key={index} className={`mb-2 ${msg.sender._id === user._id ? 'text-right' : 'text-left'}`}>
-            <p className={`inline-block p-2 rounded-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+            <p className={`inline-block max-w-[80%] rounded-2xl px-4 py-3 ${msg.sender._id === user._id ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950' : 'bg-white/8 text-slate-100 border border-white/10'}`}>
                 <strong>{msg.sender.name}: </strong>{msg.message}
             </p>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={sendMessage} className="mt-4 flex">
+      <form onSubmit={sendMessage} className="surface-soft flex gap-3 p-3">
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-grow p-2 border rounded-l-lg"
+          className="field flex-grow"
           placeholder="Type a message..."
         />
-        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-r-lg">
-          Send
+        <button type="submit" className="primary-button">
+          <Send className="h-4 w-4" />
         </button>
       </form>
     </div>

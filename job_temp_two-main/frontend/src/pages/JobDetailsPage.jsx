@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../contexts/authContext';
-import { useApplications } from '../contexts/applicationContext';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
+import { useApplications } from '../contexts/applicationContext';
+import { useAuth } from '../contexts/authContext';
 
 const JobDetailsPage = () => {
   const { id } = useParams();
@@ -21,6 +21,7 @@ const JobDetailsPage = () => {
   const [hasApplied, setHasApplied] = useState(false);
   const [atsScore, setAtsScore] = useState(null);
   const [resumeForCheck, setResumeForCheck] = useState(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
   const { user } = useAuth();
   const { applyForJob, myApplications, checkAtsScore } = useApplications();
@@ -29,7 +30,7 @@ const JobDetailsPage = () => {
     const fetchJobDetails = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get(`http://localhost:4000/api/v1/job/${id}`, { withCredentials: true });
+        const { data } = await axios.get(`${API_BASE_URL}/api/v1/job/${id}`, { withCredentials: true });
         setJob(data.job);
         if(user){
             setApplicationData(prev => ({ ...prev, name: user.name, email: user.email }));
@@ -91,6 +92,11 @@ const JobDetailsPage = () => {
     
     const result = await applyForJob(formData);
     if (result.success) {
+      if (typeof result.application?.atsScore === 'number') {
+        setAtsScore(result.application.atsScore);
+        toast.success(`Application submitted. ATS score: ${result.application.atsScore}%`);
+      }
+      setHasApplied(true);
       setIsModalOpen(false);
     }
   };

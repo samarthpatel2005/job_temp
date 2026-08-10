@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { BarChart2, Briefcase, Edit, Eye, Plus, Sparkles, Trash2, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { useApplications } from '../contexts/applicationContext';
 import { useAuth } from '../contexts/authContext';
 import { useJobs } from '../contexts/jobContext';
-import { useApplications } from '../contexts/applicationContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Briefcase, Users, Trash2, Edit, Eye, BarChart2 } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const EmployerDashboard = () => {
   const { user } = useAuth();
@@ -67,77 +67,78 @@ const EmployerDashboard = () => {
       transition={{ duration: 0.5 }}
       className="space-y-8"
     >
-      <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+      <div className="surface-strong p-6 sm:p-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <h1 className="text-3xl font-bold text-gray-800">Hello, {user?.name} 👋</h1>
-            <p className="text-gray-600 mt-2">Here's an overview of your hiring activities.</p>
+            <span className="hero-badge mb-4"><Sparkles className="h-4 w-4" /> Employer dashboard</span>
+            <h1 className="text-4xl font-black tracking-tight text-white">Hello, {user?.name} 👋</h1>
+            <p className="mt-3 max-w-2xl text-slate-300">Here’s an overview of your hiring activities, application flow, and active job posts.</p>
         </div>
-        <Link to="/post-job" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
+        <Link to="/post-job" className="primary-button gap-2 self-start">
             <Plus /> Post a New Job
         </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-          <Briefcase className="w-12 h-12 text-blue-500" />
+        <div className="surface-soft p-6 flex items-center space-x-4">
+          <Briefcase className="w-12 h-12 text-cyan-300" />
           <div>
-            <p className="text-gray-600">Total Jobs Posted</p>
-            <p className="text-3xl font-bold">{myJobs.length}</p>
+            <p className="text-slate-300">Total Jobs Posted</p>
+            <p className="text-3xl font-bold text-white">{myJobs.length}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-          <Users className="w-12 h-12 text-green-500" />
+        <div className="surface-soft p-6 flex items-center space-x-4">
+          <Users className="w-12 h-12 text-emerald-300" />
           <div>
-            <p className="text-gray-600">Total Applications</p>
-            <p className="text-3xl font-bold">{totalApplications}</p>
+            <p className="text-slate-300">Total Applications</p>
+            <p className="text-3xl font-bold text-white">{totalApplications}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-            <BarChart2 className="w-12 h-12 text-purple-500" />
+        <div className="surface-soft p-6 flex items-center space-x-4">
+            <BarChart2 className="w-12 h-12 text-indigo-300" />
             <div>
-                <p className="text-gray-600">Conversion Rate</p>
-                <p className="text-3xl font-bold">{myJobs.length > 0 ? `${((totalApplications / myJobs.length) * 10).toFixed(1)}%` : 'N/A'}</p>
+                <p className="text-slate-300">Conversion Rate</p>
+                <p className="text-3xl font-bold text-white">{myJobs.length > 0 ? `${((totalApplications / myJobs.length) * 10).toFixed(1)}%` : 'N/A'}</p>
             </div>
         </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Active Job Posts</h2>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+        <div className="lg:col-span-3 surface-soft p-6">
+          <h2 className="mb-4 text-xl font-bold text-white">Active Job Posts</h2>
+          <div className="max-h-96 space-y-4 overflow-y-auto">
             {myJobs.map(job => (
-              <div key={job._id} className="p-4 border rounded-lg flex justify-between items-center hover:bg-gray-50">
+              <div key={job._id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/40 p-4 transition hover:bg-white/8">
                 <div>
-                    <h3 className="font-bold text-lg">{job.title}</h3>
-                    <p className="text-sm text-gray-500">Posted on: {new Date(job.jobPostedOn).toLocaleDateString()}</p>
+                    <h3 className="text-lg font-bold text-white">{job.title}</h3>
+                    <p className="text-sm text-slate-400">Posted on: {new Date(job.jobPostedOn).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => navigate(`/job/applicants/${job._id}`)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"><Eye /></button>
-                    <button onClick={() => navigate(`/post-job/${job._id}`)} className="p-2 text-green-600 hover:bg-green-100 rounded-full"><Edit /></button>
-                    <button onClick={() => handleDelete(job._id)} className="p-2 text-red-600 hover:bg-red-100 rounded-full"><Trash2 /></button>
+                    <button onClick={() => navigate(`/job/applicants/${job._id}`)} className="rounded-full p-2 text-cyan-300 transition hover:bg-white/10"><Eye /></button>
+                    <button onClick={() => navigate(`/post-job/${job._id}`)} className="rounded-full p-2 text-emerald-300 transition hover:bg-white/10"><Edit /></button>
+                    <button onClick={() => handleDelete(job._id)} className="rounded-full p-2 text-rose-300 transition hover:bg-white/10"><Trash2 /></button>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Recent Applications</h2>
+        <div className="lg:col-span-2 surface-soft p-6">
+          <h2 className="mb-4 text-xl font-bold text-white">Recent Applications</h2>
           <div className="space-y-3">
             {recentApplicants.map(app => (
-              <div key={app._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={app._id} className="flex items-center justify-between rounded-2xl bg-slate-950/40 p-3">
                 <div>
-                  <p className="font-semibold">{app.name}</p>
-                  <p className="text-sm text-gray-500">Applied for: {app.jobTitle}</p>
+                  <p className="font-semibold text-white">{app.name}</p>
+                  <p className="text-sm text-slate-400">Applied for: {app.jobTitle}</p>
                 </div>
-                <Link to={`/job/applicants/${app.jobID}`} className="text-sm text-blue-600 hover:underline">View</Link>
+                <Link to={`/job/applicants/${app.jobID}`} className="text-sm font-semibold text-cyan-300 hover:text-cyan-200">View</Link>
               </div>
             ))}
           </div>
         </div>
       </div>
       
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">Applications by Job</h2>
+      <div className="surface-soft p-6">
+        <h2 className="mb-4 text-xl font-bold text-white">Applications by Job</h2>
         <ResponsiveContainer width="100%" height={300}>
             <PieChart>
                 <Pie data={applicationByJobData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="#8884d8" label>

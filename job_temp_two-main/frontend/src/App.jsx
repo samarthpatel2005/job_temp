@@ -1,25 +1,24 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './contexts/authContext';
-import { JobProvider } from './contexts/jobContext';
-import { ApplicationProvider } from './contexts/applicationContext';
-import { SocketProvider } from './contexts/chatContext';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import JobsPage from './pages/JobsPage';
-import JobDetailsPage from './pages/JobDetailsPage';
-import MyApplicationsPage from './pages/MyApplicationsPage';
-import PostJobPage from './pages/PostJobPage';
-import MyJobsPage from './pages/MyJobsPage';
-import ViewApplicantsPage from './pages/ViewApplicantsPage';
-import ProfilePage from './pages/ProfilePage';
-import ChatPage from './pages/ChatPage';
-import NotFoundPage from './pages/NotFoundPage';
-import Navbar from './components/layouts/Navbar';
-import AIChatBot from './components/AIChatBot';
+import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import './App.css';
+import AIChatBot from './components/AIChatBot';
+import Navbar from './components/layouts/Navbar';
+import { ApplicationProvider } from './contexts/applicationContext';
+import { AuthProvider, useAuth } from './contexts/authContext';
+import { SocketProvider } from './contexts/chatContext';
+import { JobProvider } from './contexts/jobContext';
+import ChatPage from './pages/ChatPage';
+import HomePage from './pages/HomePage';
+import JobDetailsPage from './pages/JobDetailsPage';
+import JobsPage from './pages/JobsPage';
+import LoginPage from './pages/LoginPage';
+import MyApplicationsPage from './pages/MyApplicationsPage';
+import MyJobsPage from './pages/MyJobsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import PostJobPage from './pages/PostJobPage';
+import ProfilePage from './pages/ProfilePage';
+import RegisterPage from './pages/RegisterPage';
+import ViewApplicantsPage from './pages/ViewApplicantsPage';
 
 const App = () => {
   return (
@@ -43,10 +42,22 @@ const AppContent = () => {
   const showChatBot = isAuthenticated && !['/login', '/register'].includes(location.pathname);
 
   return (
-    <>
+    <div className="app-shell">
       <Navbar />
-      <Toaster />
-      <main className="container mx-auto px-6 py-8">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2800,
+          style: {
+            borderRadius: '18px',
+            background: 'rgba(15, 23, 42, 0.95)',
+            color: '#fff',
+            border: '1px solid rgba(148, 163, 184, 0.15)',
+            boxShadow: '0 20px 60px rgba(2, 6, 23, 0.35)',
+          },
+        }}
+      />
+      <main className="page-width relative z-10 w-full px-4 py-8 pb-24 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -63,7 +74,7 @@ const AppContent = () => {
         </Routes>
       </main>
       {showChatBot && <AIChatBot />}
-    </>
+    </div>
   );
 };
 

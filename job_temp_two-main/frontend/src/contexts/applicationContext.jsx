@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { createContext, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from './authContext';
 
@@ -17,7 +17,8 @@ export const ApplicationProvider = ({ children }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success(data.message);
-      return { success: true };
+      await fetchMyApplications();
+      return { success: true, application: data.application, message: data.message };
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to apply');
       return { success: false };

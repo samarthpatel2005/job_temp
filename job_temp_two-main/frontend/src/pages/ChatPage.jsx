@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { useSocket } from '../contexts/chatContext';
-import { useAuth } from '../contexts/authContext';
 import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/authContext';
+import { useSocket } from '../contexts/chatContext';
 
 const ChatPage = () => {
   const { applicationId } = useParams();
@@ -13,12 +13,14 @@ const ChatPage = () => {
   const [application, setApplication] = useState(null);
   const messagesEndRef = useRef(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
   useEffect(() => {
     const fetchApplicationDetails = async () => {
         try {
             // I need an endpoint to get single application details
             // I will add this to the backend
-            const { data } = await axios.get(`http://localhost:4000/api/v1/application/${applicationId}`, { withCredentials: true });
+            const { data } = await axios.get(`${API_BASE_URL}/api/v1/application/${applicationId}`, { withCredentials: true });
             setApplication(data.application);
         } catch(error){
             console.error("failed to fetch application details", error)
@@ -28,7 +30,7 @@ const ChatPage = () => {
 
     const fetchMessages = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:4000/api/v1/chat/${applicationId}`, { withCredentials: true });
+        const { data } = await axios.get(`${API_BASE_URL}/api/v1/chat/${applicationId}`, { withCredentials: true });
         setMessages(data.messages);
       } catch (error) {
         console.error("Failed to fetch messages", error);

@@ -1,8 +1,5 @@
 import mongoose from 'mongoose';
 
-// Debug the MONGO_URI
-console.log('MONGO_URI:', process.env.MONGO_URI);
-
 export const dbConnection = async () => {
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI is not defined in the environment variables.');

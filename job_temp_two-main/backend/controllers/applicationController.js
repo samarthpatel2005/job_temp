@@ -10,7 +10,18 @@ import { Job } from "../models/jobSchema.js";
 import { getAtsScore } from "../utils/aiHelper.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+// Initialize Supabase client lazily
+let supabase;
+const getSupabaseClient = () => {
+  if (!supabase) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) are required');
+    }
+    supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  }
+  return supabase;
+};
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const postApplication = catchAsyncErrors(async (req, res, next) => {
@@ -62,7 +73,8 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
   
   // Try Supabase upload first, then fallback to local storage
   try {
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const supabaseClient = getSupabaseClient();
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
       .from('resume')
       .upload(resumePath, req.file.buffer, {
         contentType: req.file.mimetype,
@@ -72,7 +84,7 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
       throw new Error("Supabase upload failed");
     }
     
-    const { data: urlData } = supabase.storage.from('resume').getPublicUrl(resumePath);
+    const { data: urlData } = supabaseClient.storage.from('resume').getPublicUrl(resumePath);
     resumeUrl = urlData.publicUrl;
     console.log("Successfully uploaded to Supabase:", resumeUrl);
   } catch (supabaseError) {
